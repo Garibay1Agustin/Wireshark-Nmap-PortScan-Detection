@@ -1,14 +1,14 @@
-# 🛡️ Detección y Análisis de un Escaneo de Puertos con Nmap (TCP SYN Scan)
+# Detección y Análisis de un Escaneo de Puertos con Nmap (TCP SYN Scan)
 
-## 📌 Descripción
+## Descripción
 
 En este proyecto utilicé **Nmap** para realizar un escaneo de puertos mediante la técnica **TCP SYN Scan (-sS)** y analicé el tráfico generado utilizando **Wireshark**.
 
-El objetivo fue identificar el comportamiento característico de este tipo de reconocimiento, analizar las respuestas del equipo objetivo y comprender cómo un analista SOC puede detectar esta actividad a partir del análisis del tráfico de red.
+El objetivo fue identificar el comportamiento característico de este tipo de reconocimiento, analizar las respuestas del equipo objetivo y comprender cómo un analista SOC puede detectar esta actividad a partir del tráfico de red.
 
 ---
 
-## ℹ️ Información del proyecto
+## Información del proyecto
 
 | Herramienta | Nmap / Wireshark |
 |-------------|------------------|
@@ -19,9 +19,9 @@ El objetivo fue identificar el comportamiento característico de este tipo de re
 
 ---
 
-## 1. Detección del escaneo SYN
+# 1. Detección del escaneo SYN
 
-Como primera prueba ejecuté un **TCP SYN Scan** utilizando Nmap y capturé el tráfico generado con Wireshark.
+Como primera prueba ejecuté un **TCP SYN Scan** utilizando Nmap y capturé todo el tráfico generado con Wireshark.
 
 Para visualizar únicamente los paquetes SYN enviados por el escáner apliqué el siguiente filtro:
 
@@ -31,13 +31,15 @@ tcp.flags.syn == 1 && tcp.flags.ack == 0
 
 Este filtro permitió identificar rápidamente los intentos de conexión enviados hacia distintos puertos del equipo objetivo.
 
-En la captura puede observarse una gran cantidad de paquetes SYN enviados en un corto período de tiempo, un comportamiento característico de un escaneo automatizado.
+En la captura puede observarse cómo Nmap envía una gran cantidad de paquetes SYN en un corto período de tiempo, un comportamiento característico de un escaneo automatizado.
+
+> **Captura del escaneo SYN**
 
 ![Detección del escaneo SYN](evidencia/foto1_syn_scan.png)
 
 ---
 
-## 2. Análisis de las respuestas TCP (RST)
+# 2. Análisis de las respuestas TCP (RST)
 
 Una vez identificados los paquetes SYN, analicé las respuestas enviadas por el equipo objetivo utilizando el siguiente filtro:
 
@@ -47,77 +49,85 @@ tcp.flags.reset == 1
 
 Las respuestas **RST** indican que los puertos consultados se encontraban cerrados, ya que el sistema rechazó inmediatamente el intento de conexión.
 
-Este comportamiento permite identificar con facilidad los puertos que no aceptan conexiones TCP.
+Este comportamiento permite distinguir fácilmente los puertos que no aceptan conexiones TCP.
+
+> **Respuestas RST del equipo objetivo**
 
 ![Respuestas TCP RST](evidencia/foto2_rst_responses.png)
 
 ---
 
-## 3. Análisis del volumen de tráfico (I/O Graph)
+# 3. Reconstrucción del flujo TCP
+
+Para comprender mejor la comunicación entre ambos equipos utilicé la herramienta **Follow TCP Stream** de Wireshark.
+
+Aunque un escaneo SYN no completa el **Three-Way Handshake**, esta vista permite observar la secuencia de paquetes intercambiados durante el proceso de reconocimiento y entender cómo responde el sistema ante cada intento de conexión.
+
+> **Reconstrucción del flujo TCP**
+
+![Reconstrucción del flujo TCP](evidencia/TCP%20Stream.png)
+
+---
+
+# 4. Análisis del volumen de tráfico
 
 Además del análisis individual de paquetes, utilicé la herramienta **I/O Graph** de Wireshark para visualizar el comportamiento general del tráfico durante la ejecución del escaneo.
 
-En la gráfica puede observarse un incremento significativo en la cantidad de paquetes por segundo mientras Nmap realizaba el reconocimiento.
+En la gráfica puede observarse un incremento significativo en la cantidad de paquetes por segundo mientras Nmap realiza el reconocimiento.
 
-Este tipo de comportamiento constituye un indicador útil para detectar actividades de reconocimiento dentro de una red, incluso cuando no se inspeccionan los paquetes de forma individual.
+Este tipo de comportamiento resulta útil para detectar actividades de escaneo dentro de una red, incluso cuando no se analiza cada paquete de forma individual.
+
+> **Gráfico I/O generado durante el escaneo**
 
 ![Análisis del volumen de tráfico](evidencia/foto3_io_graph.png)
 
 ---
 
-## 📂 Evidencias del laboratorio
+# Conclusiones
 
-| Archivo | Descripción |
-|---------|-------------|
-| **foto1_syn_scan.png** | Captura del filtro TCP SYN mostrando los intentos de conexión realizados por Nmap. |
-| **foto2_rst_responses.png** | Respuestas TCP RST enviadas por el equipo objetivo indicando puertos cerrados. |
-| **foto3_io_graph.png** | Gráfico I/O que muestra el incremento del tráfico durante la ejecución del escaneo. |
-
----
-
-## 📚 Conclusiones
-
-Este laboratorio permitió comprender el funcionamiento de un **TCP SYN Scan** y reconocer los principales indicadores que deja este tipo de actividad en una captura de red.
+Este proyecto permitió comprender el funcionamiento de un **TCP SYN Scan** y reconocer los principales indicadores que deja este tipo de actividad en una captura de red.
 
 Durante el análisis fue posible observar que:
 
 - Nmap envía paquetes SYN a múltiples puertos en un corto período de tiempo.
-- Los puertos cerrados responden mediante paquetes TCP RST.
-- El **I/O Graph** facilita la identificación de incrementos anómalos en el volumen de tráfico.
-- Wireshark proporciona herramientas muy útiles para detectar actividades de reconocimiento desde una perspectiva defensiva.
+- Los puertos cerrados responden con paquetes TCP RST.
+- **Follow TCP Stream** permite reconstruir la comunicación entre los equipos involucrados.
+- **I/O Graph** facilita la identificación de incrementos anómalos en el tráfico.
+- Wireshark proporciona herramientas muy útiles para detectar este tipo de actividad desde una perspectiva defensiva.
 
-Este tipo de análisis resulta útil para comprender cómo un analista SOC puede identificar una fase de reconocimiento previa a un posible intento de explotación.
+Este tipo de análisis ayuda a comprender cómo un analista SOC puede identificar un reconocimiento previo a un posible intento de explotación.
 
 ---
 
-## ❓ Preguntas frecuentes
+# Preguntas frecuentes
 
-### ¿Por qué el escaneo SYN se conoce como "Half-Open Scan"?
+## ¿Por qué el escaneo SYN se conoce como "Half-Open Scan"?
 
 Porque Nmap no completa la conexión TCP.
 
-El escáner envía un paquete **SYN** y espera la respuesta del equipo objetivo:
+El escáner envía un paquete **SYN** y espera la respuesta del equipo objetivo.
 
 - Si recibe un **SYN-ACK**, interpreta que el puerto está abierto.
 - Si recibe un **RST**, interpreta que el puerto está cerrado.
 
-Posteriormente finaliza la comunicación sin completar el **Three-Way Handshake**, reduciendo la probabilidad de generar registros en la aplicación.
+Después de recibir la respuesta, Nmap envía un paquete **RST**, evitando completar el **Three-Way Handshake**.
 
 ---
 
-### ¿Qué significa recibir un paquete SYN-ACK?
+## ¿Qué significa recibir un paquete SYN-ACK?
 
 Cuando un puerto responde con un **SYN-ACK**, significa que el servicio está escuchando conexiones TCP y que el puerto se encuentra **abierto**.
 
 ---
 
-## 🛠️ Tecnologías utilizadas
+## Tecnologías utilizadas
 
 - Nmap
 - Wireshark
-- TCP/IP
-- TCP SYN Scan (`-sS`)
+- TCP
+- TCP SYN Scan
 - Wireshark Display Filters
+- Follow TCP Stream
 - I/O Graph
 
 ---
