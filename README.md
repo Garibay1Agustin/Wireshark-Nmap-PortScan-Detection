@@ -65,7 +65,6 @@ Aunque un escaneo SYN no completa el **Three-Way Handshake**, esta vista permite
 
 > **Reconstrucción del flujo TCP**
 
-![Reconstrucción del flujo TCP](evidencia/TCP%20Stream.png)
 
 ---
 
