@@ -31,7 +31,9 @@ tcp.flags.syn == 1 && tcp.flags.ack == 0
 
 Este filtro permitió identificar rápidamente los intentos de conexión enviados hacia distintos puertos del equipo objetivo.
 
-En la captura puede observarse cómo Nmap envía una gran cantidad de paquetes SYN en muy poco tiempo, un comportamiento típico de un escaneo automatizado.
+En la captura puede observarse cómo Nmap envía una gran cantidad de paquetes SYN en un corto período de tiempo, un comportamiento característico de un escaneo automatizado.
+
+> **Captura del escaneo SYN**
 
 ![Detección del escaneo SYN](evidencia/foto1_syn_scan.png)
 
@@ -49,6 +51,8 @@ Las respuestas **RST** indican que los puertos consultados se encontraban cerrad
 
 Este comportamiento permite distinguir fácilmente los puertos que no aceptan conexiones TCP.
 
+> **Respuestas RST del equipo objetivo**
+
 ![Respuestas TCP RST](evidencia/foto2_rst_responses.png)
 
 ---
@@ -57,9 +61,9 @@ Este comportamiento permite distinguir fácilmente los puertos que no aceptan co
 
 Para comprender mejor la comunicación entre ambos equipos utilicé la herramienta **Follow TCP Stream** de Wireshark.
 
-Esta función permite reconstruir la conversación TCP correspondiente a una conexión determinada.
+Aunque un escaneo SYN no completa el **Three-Way Handshake**, esta vista permite observar la secuencia de paquetes intercambiados durante el proceso de reconocimiento y entender cómo responde el sistema ante cada intento de conexión.
 
-Aunque un escaneo SYN no completa el **Three-Way Handshake**, esta vista resulta útil para observar el intercambio de paquetes y comprender cómo responde el sistema durante el proceso de reconocimiento.
+> **Reconstrucción del flujo TCP**
 
 ![Reconstrucción del flujo TCP](evidencia/TCP%20Stream.png)
 
@@ -67,13 +71,15 @@ Aunque un escaneo SYN no completa el **Three-Way Handshake**, esta vista resulta
 
 # 4. Análisis del volumen de tráfico
 
-Además del análisis individual de paquetes, utilicé la herramienta **I/O Graph** de Wireshark para observar el comportamiento general del tráfico durante la ejecución del escaneo.
+Además del análisis individual de paquetes, utilicé la herramienta **I/O Graph** de Wireshark para visualizar el comportamiento general del tráfico durante la ejecución del escaneo.
 
-En la gráfica se aprecia un incremento significativo en la cantidad de paquetes por segundo mientras Nmap realiza el reconocimiento.
+En la gráfica puede observarse un incremento significativo en la cantidad de paquetes por segundo mientras Nmap realiza el reconocimiento.
 
-Este tipo de comportamiento puede utilizarse como un indicador para detectar actividades de escaneo dentro de una red.
+Este tipo de comportamiento resulta útil para detectar actividades de escaneo dentro de una red, incluso cuando no se analiza cada paquete de forma individual.
 
-![Gráfico I/O del escaneo](evidencia/foto3_io_graph.png)
+> **Gráfico I/O generado durante el escaneo**
+
+![Análisis del volumen de tráfico](evidencia/foto3_io_graph.png)
 
 ---
 
@@ -85,11 +91,11 @@ Durante el análisis fue posible observar que:
 
 - Nmap envía paquetes SYN a múltiples puertos en un corto período de tiempo.
 - Los puertos cerrados responden con paquetes TCP RST.
-- La herramienta **Follow TCP Stream** facilita el análisis de la comunicación entre los equipos involucrados.
-- El gráfico **I/O Graph** permite detectar incrementos anómalos en el volumen de tráfico.
-- Wireshark proporciona las herramientas necesarias para identificar y analizar este tipo de actividad de reconocimiento.
+- **Follow TCP Stream** permite reconstruir la comunicación entre los equipos involucrados.
+- **I/O Graph** facilita la identificación de incrementos anómalos en el tráfico.
+- Wireshark proporciona herramientas muy útiles para detectar este tipo de actividad desde una perspectiva defensiva.
 
-Este tipo de análisis resulta especialmente útil para comprender cómo un analista SOC puede detectar un escaneo de puertos antes de que un atacante intente explotar una vulnerabilidad.
+Este tipo de análisis ayuda a comprender cómo un analista SOC puede identificar un reconocimiento previo a un posible intento de explotación.
 
 ---
 
